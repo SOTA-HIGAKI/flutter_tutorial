@@ -48,11 +48,19 @@ class _RandomWordsState extends State<RandomWords> {
   final _suggestions = <WordPair>[];
   final _saved = <WordPair>{};
   final _biggerFont = const TextStyle(fontSize: 18.0);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Startup Name Generator'),
+        actions: [
+          IconButton(
+            onPressed: _pushSaved,
+            icon: const Icon(Icons.list),
+            tooltip: 'Saved suggestions',
+          )
+        ],
       ),
       body: ListView.builder(
         padding: const EdgeInsets.all(16.0),  // padding from left edge of window
@@ -81,6 +89,42 @@ class _RandomWordsState extends State<RandomWords> {
         color: alreadySaved ? Colors.red : null,
         semanticLabel: alreadySaved ? 'Remove from saved' : 'Save',
       ),
+      onTap: () {
+        setState(() {
+          if (alreadySaved) {
+            _saved.remove(pair);
+          } else {
+            _saved.add(pair);
+          }
+        });
+      },
+    );
+  }
+
+  void _pushSaved() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) {
+        final tiles = _saved.map((pair) => (  // equal to forEach method
+          ListTile(
+            title: Text(
+              pair.asPascalCase,
+              style: _biggerFont,
+            ))
+        ));
+        final divided = tiles.isNotEmpty
+        ? ListTile.divideTiles(
+          context: context,
+          tiles: tiles,
+        ).toList()
+        : <Widget>[];
+
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('Saved suggestions'),
+          ),
+          body: ListView(children: divided,)
+        );
+      })
     );
   }
 }
