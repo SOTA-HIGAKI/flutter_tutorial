@@ -30,40 +30,49 @@ class FriendlyChatApp extends StatelessWidget {
   }
 }
 
+// チャット結果の表示部分の中身(アバター、名前、メッセージ)
 class ChatMessage extends StatelessWidget {
   const ChatMessage({
-     required this.text,
-     Key? key,
-    }) : super(key: key);
+    required this.text,
+    required this.animationController,
+    Key? key,
+  }) : super(key: key);
   final String text;
+  final AnimationController animationController;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 10.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            margin: const EdgeInsets.only(right: 16.0),
-            child: CircleAvatar(child: Text(_name[0])),  // sender name and avatar
-          ),
-          Column(
+    return SizeTransition(
+      sizeFactor:
+          CurvedAnimation(curve: Curves.easeOut, parent: animationController),
+      axisAlignment: 0.0,
+      child: Container(
+          margin: const EdgeInsets.symmetric(vertical: 10.0),
+          child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(_name, style: Theme.of(context).textTheme.headline4),
               Container(
-                margin: const EdgeInsets.only(top: 5.0),
-                child: Text(text),  //message
+                margin: const EdgeInsets.only(right: 16.0),
+                child: CircleAvatar(
+                    child: Text(_name[0])), // sender name and avatar
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(_name, style: Theme.of(context).textTheme.headline4),
+                  Container(
+                    margin: const EdgeInsets.only(top: 5.0),
+                    child: Text(text), //message
+                  )
+                ],
               )
             ],
-          )
-        ],
-      )
+          )),
     );
   }
 }
 
+// chat メイン画面
 class ChatScreen extends StatefulWidget {
   const ChatScreen({Key? key}) : super(key: key);
 
@@ -71,7 +80,8 @@ class ChatScreen extends StatefulWidget {
   State<ChatScreen> createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+// chat screen state
+class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   final List<ChatMessage> _messages = [];
   final _textController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
@@ -83,7 +93,8 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
       body: Column(
         children: [
-          Flexible(child: ListView.builder(
+          Flexible(
+              child: ListView.builder(
             itemBuilder: (_, index) => _messages[index],
             padding: const EdgeInsets.all(8.0),
             reverse: true,
@@ -91,9 +102,7 @@ class _ChatScreenState extends State<ChatScreen> {
           )),
           const Divider(height: 1.0),
           Container(
-            decoration: BoxDecoration(
-              color: Theme.of(context).cardColor
-            ),
+            decoration: BoxDecoration(color: Theme.of(context).cardColor),
             child: _buildTextComposer(),
           )
         ],
@@ -101,6 +110,7 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
+  // テキストフィールドと送信ボタン widget
   Widget _buildTextComposer() {
     return IconTheme(
       data: IconThemeData(color: Theme.of(context).colorScheme.secondary),
@@ -117,24 +127,37 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ),
           Container(
-            margin: const EdgeInsets.symmetric(horizontal: 4.0),
-            child: IconButton(
-              icon: const Icon(Icons.send),
-              onPressed: () => _handleSubmitted(_textController.text),
-            )
-          )
+              margin: const EdgeInsets.symmetric(horizontal: 4.0),
+              child: IconButton(
+                icon: const Icon(Icons.send),
+                onPressed: () => _handleSubmitted(_textController.text),
+              ))
         ]),
       ),
     );
   }
 
+  // 提出時の操作
   void _handleSubmitted(String text) {
     _textController.clear();
-    var message = ChatMessage(text: text,);
+    var message = ChatMessage(
+      text: text,
+      animationController: AnimationController(
+          vsync: this, duration: const Duration(milliseconds: 200)),
+    );
     setState(() {
       _messages.insert(0, message);
     });
     _focusNode.requestFocus();
+    message.animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    for (var message in _messages) {
+      message.animationController.dispose();
+    }
+    super.dispose();
   }
 }
 
