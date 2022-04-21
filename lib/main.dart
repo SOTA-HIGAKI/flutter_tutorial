@@ -1,3 +1,5 @@
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:english_words/english_words.dart';
 
@@ -6,6 +8,15 @@ void main() {
 }
 
 String _name = 'Sota Higaki';
+
+final ThemeData kIOSTheme = ThemeData(
+  primarySwatch: Colors.orange,
+  primaryColor: Colors.grey[100],
+);
+
+final ThemeData kDefaultTheme = ThemeData(
+    colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.purple)
+        .copyWith(secondary: Colors.orangeAccent[400]));
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
@@ -23,9 +34,12 @@ class FriendlyChatApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       title: 'Friendly chat',
-      home: ChatScreen(),
+      theme: defaultTargetPlatform == TargetPlatform.iOS
+          ? kIOSTheme
+          : kDefaultTheme,
+      home: const ChatScreen(),
     );
   }
 }
@@ -56,15 +70,17 @@ class ChatMessage extends StatelessWidget {
                 child: CircleAvatar(
                     child: Text(_name[0])), // sender name and avatar
               ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(_name, style: Theme.of(context).textTheme.headline4),
-                  Container(
-                    margin: const EdgeInsets.only(top: 5.0),
-                    child: Text(text), //message
-                  )
-                ],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(_name, style: Theme.of(context).textTheme.headline4),
+                    Container(
+                      margin: const EdgeInsets.only(top: 5.0),
+                      child: Text(text), //message
+                    )
+                  ],
+                ),
               )
             ],
           )),
@@ -85,27 +101,37 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   final List<ChatMessage> _messages = [];
   final _textController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
+  bool _isComposing = false;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('FriendlyChat'),
+        elevation: Theme.of(context).platform == TargetPlatform.iOS ? 0.0 : 4.0,
       ),
-      body: Column(
-        children: [
-          Flexible(
-              child: ListView.builder(
-            itemBuilder: (_, index) => _messages[index],
-            padding: const EdgeInsets.all(8.0),
-            reverse: true,
-            itemCount: _messages.length,
-          )),
-          const Divider(height: 1.0),
-          Container(
-            decoration: BoxDecoration(color: Theme.of(context).cardColor),
-            child: _buildTextComposer(),
-          )
-        ],
+      body: Container(
+        child: Column(
+          children: [
+            Flexible(
+                child: ListView.builder(
+              itemBuilder: (_, index) => _messages[index],
+              padding: const EdgeInsets.all(8.0),
+              reverse: true,
+              itemCount: _messages.length,
+            )),
+            const Divider(height: 1.0),
+            Container(
+              decoration: BoxDecoration(color: Theme.of(context).cardColor),
+              child: _buildTextComposer(),
+            )
+          ],
+        ),
+        decoration: Theme.of(context).platform == TargetPlatform.iOS
+            ? BoxDecoration(
+                border: Border(
+                top: BorderSide(color: Colors.grey[200]!),
+              ))
+            : null,
       ),
     );
   }
@@ -120,6 +146,12 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           Flexible(
             child: TextField(
               controller: _textController,
+              onChanged: (text) {
+                setState(() {
+                  _isComposing = text.isNotEmpty; // if text filled, return true
+                });
+              },
+              // onSubmitted: _isComposing ? _handleSubmitted : null,
               onSubmitted: _handleSubmitted,
               decoration:
                   const InputDecoration.collapsed(hintText: 'Send a message'),
@@ -128,10 +160,20 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           ),
           Container(
               margin: const EdgeInsets.symmetric(horizontal: 4.0),
-              child: IconButton(
-                icon: const Icon(Icons.send),
-                onPressed: () => _handleSubmitted(_textController.text),
-              ))
+              child: Theme.of(context).platform == TargetPlatform.iOS
+                  ? CupertinoButton(
+                      child: const Text("send"),
+                      onPressed: _isComposing
+                          ? () => _handleSubmitted(_textController.text)
+                          : null,
+                    )
+                  : IconButton(
+                      icon: const Icon(Icons.send),
+                      onPressed: _isComposing
+                          ? () => _handleSubmitted(_textController.text)
+                          : null, // onpressedはボタンの操作、onsubmittedはtextfieldの操作で、
+                      // onsubmittedにcallbackが設定されていればEnterで送信できてしまう
+                    ))
         ]),
       ),
     );
@@ -140,6 +182,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   // 提出時の操作
   void _handleSubmitted(String text) {
     _textController.clear();
+    setState(() {
+      _isComposing = false;
+    });
     var message = ChatMessage(
       text: text,
       animationController: AnimationController(
