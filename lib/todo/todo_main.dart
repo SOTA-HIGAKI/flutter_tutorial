@@ -55,7 +55,6 @@ class _TodoListPageState extends State<TodoListPage> {
         setState(() {});
       },
     );
-    print("終わり");
   }
 
   @override
@@ -88,7 +87,7 @@ class _TodoListPageState extends State<TodoListPage> {
                 children: [
                   SlidableAction(
                     onPressed: (context) async {
-                      await _repo.delete(todo);
+                      await _repo.delete(todo.id);
                       setState(() {});
                     },
                     backgroundColor: Colors.red,
@@ -137,10 +136,10 @@ class _TodoAddPageState extends State<TodoAddPage> {
   // late initialization
   late bool _isCreateTodo;
   late String _title;
-  late String _detail;
+  late String _explanation;
   late bool _done;
   late String _createDate;
-  late String _updateDate;
+  late String _updatedDate;
 
   @override
   void initState() {
@@ -148,10 +147,10 @@ class _TodoAddPageState extends State<TodoAddPage> {
     var todo = widget.todo;
 
     _title = todo?.title ?? "";
-    _detail = todo?.detail ?? "";
+    _explanation = todo?.explanation ?? "";
     _done = todo?.done ?? false;
     _createDate = todo?.createDate ?? "";
-    _updateDate = todo?.updateDate ?? "";
+    _updatedDate = todo?.updatedDate ?? "";
     _isCreateTodo = todo == null;
   }
 
@@ -217,9 +216,9 @@ class _TodoAddPageState extends State<TodoAddPage> {
                 ),
               ),
               // TextEditingControllerを使用することで、いちいちsetStateしなくても画面を更新してくれる
-              controller: TextEditingController(text: _detail),
+              controller: TextEditingController(text: _explanation),
               onChanged: (String value) {
-                _detail = value;
+                _explanation = value;
               },
             ),
             const SizedBox(height: 20),
@@ -230,10 +229,10 @@ class _TodoAddPageState extends State<TodoAddPage> {
                 onPressed: () {
                   if (_isCreateTodo) {
                     // Todoを追加する
-                    _repo.add(_done, _title, _detail);
+                    _repo.add(_done, _title, _explanation);
                   } else {
                     // Todoを更新する
-                    _repo.update(widget.todo!, _done, _title, _detail);
+                    _repo.update(widget.todo!, _done, _title, _explanation);
                   }
                   // Todoリスト画面に戻る
                   Navigator.of(context).pop();
@@ -267,7 +266,7 @@ class _TodoAddPageState extends State<TodoAddPage> {
             ),
             const SizedBox(height: 30),
             Text("作成日時 : $_createDate"),
-            Text("更新日時 : $_updateDate"),
+            Text("更新日時 : $_updatedDate"),
           ],
         ),
       ),

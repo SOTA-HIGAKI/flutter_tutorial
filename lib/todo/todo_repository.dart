@@ -1,11 +1,19 @@
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:intl/intl.dart';
 import 'dart:convert';
+
+import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
+import 'package:intl/intl.dart';
 import 'todo.dart';
 
+// import 'package:shared_preferences/shared_preferences.dart';
+// import 'dart:convert';
+
 class TodoRepository {
-  final String _saveKey = "Todo";
-  List<Todo> _list = [];
+  final Uri _uriHost = Uri.parse('http://localhost:8000/');
+  // final String _saveKey = "Todo";
+  List<dynamic> _list = [];
+  // bool _isSuccess = false;
+  Dio dio = Dio();
 
   static final TodoRepository _instance = TodoRepository._();
 
@@ -29,48 +37,46 @@ class TodoRepository {
     return dateTIme;
   }
 
-  Future<void> add(bool done, String title, String detail) async {
+  Future add(bool done, String title, String explanation) async {
     int id = getTodoNum() == 0 ? 1 : _list.last.id + 1;
     String dateTime = getDateTIme();
-    Todo todo = Todo(id, title, detail, done, dateTime, dateTime);
-    _list.add(todo);
-    await save();
+    Map todoMap = Todo(id, title, explanation, done, dateTime, dateTime).toJson();
+    final Response response = await dio.post('/api/todos/', data: todoMap);
+
+    return response;
   }
 
-  Future<void> update(Todo todo, bool done,
-      [String? title, String? detail]) async {
+  Future update(Todo todo, bool done, [String? title, String? explanation]) async {
     todo.done = done;
     if (title != null) {
       todo.title = title;
     }
-    if (detail != null) {
-      todo.detail = detail;
+    if (explanation != null) {
+      todo.explanation = explanation;
     }
-    todo.updateDate = getDateTIme();
-    await save();
+    todo.updatedDate = getDateTIme();
+
+    final Response response =
+        await dio.post('/api/todos/', data: todo.toJson());
+
+    return response;
   }
 
-  Future<void> delete(Todo todo) async {
-    _list.remove(todo);
-    await save();
-  }
-
-  Future<void> save() async {
-    final prefs = await SharedPreferences.getInstance();
-    var saveTargetList = _list.map((e) => json.encode(e.toJson())).toList();
-    await prefs.setStringList(_saveKey, saveTargetList);
+  Future delete(int id) async {
+    final Response response = await dio.delete('/api/todos/$id/');
+    return response;
   }
 
   // todo を読み込み
   Future<void> load() async {
-    print("load");
-    print(await SharedPreferences.getInstance());
-    var prefs = await SharedPreferences.getInstance();
-    print("after declaring prefs");
-    print(prefs);
-    var loadTargetList = prefs.getStringList(_saveKey) ?? [];
-    print("loadTargetList");
-    print(loadTargetList);
-    _list = loadTargetList.map((e) => Todo.fromJson(json.decode(e))).toList();
+    await _prepareDio(dio);
+    final res = await dio.get('/api/todos/');
+    _list = res.data.map((todo) => Todo.fromJson(todo)).toList();
+  }
+
+  Future<void> _prepareDio(Dio dio) async {
+    dio.options.baseUrl = _uriHost.toString();
+    dio.options.connectTimeout = 5000;
+    dio.options.receiveTimeout = 3000;
   }
 }

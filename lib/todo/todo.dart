@@ -1,31 +1,31 @@
 class Todo {
   late int id;
   late String title;
-  late String detail;
+  late String explanation;
   late bool done;
   late String createDate;
-  late String updateDate;
+  late String updatedDate;
 
-  Todo(this.id, this.title, this.detail, this.done, this.createDate,
-      this.updateDate);
+  Todo(this.id, this.title, this.explanation, this.done, this.createDate,
+      this.updatedDate);
 
   Map toJson() {
     return {
       'id': id,
       'title': title,
-      'detail': detail,
+      'explanation': explanation,
       'done': done,
       'createDate': createDate,
-      'updateDate': updateDate
+      'updatedDate': updatedDate
     };
   }
 
   Todo.fromJson(Map json) {
     id = json['id'];
     title = json['title'];
-    detail = json['detail'];
+    explanation = json['explanation'];
     done = json['done'];
     createDate = json['createDate'];
-    updateDate = json['updateDate'];
+    updatedDate = json['updatedDate'];
   }
 }
