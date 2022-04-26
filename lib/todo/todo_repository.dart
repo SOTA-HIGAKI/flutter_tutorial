@@ -37,16 +37,17 @@ class TodoRepository {
     return dateTIme;
   }
 
-  Future add(bool done, String title, String explanation) async {
+  Future<void> add(bool done, String title, String explanation) async {
     int id = getTodoNum() == 0 ? 1 : _list.last.id + 1;
     String dateTime = getDateTIme();
-    Map todoMap = Todo(id, title, explanation, done, dateTime, dateTime).toJson();
+    Map todoMap =
+        Todo(id, title, explanation, done, dateTime, dateTime).toJson();
     final Response response = await dio.post('/api/todos/', data: todoMap);
-
-    return response;
+    _list.add(Todo.fromJson(response.data));
   }
 
-  Future update(Todo todo, bool done, [String? title, String? explanation]) async {
+  Future update(Todo todo, bool done,
+      [String? title, String? explanation]) async {
     todo.done = done;
     if (title != null) {
       todo.title = title;
@@ -55,28 +56,27 @@ class TodoRepository {
       todo.explanation = explanation;
     }
     todo.updatedDate = getDateTIme();
-
     final Response response =
-        await dio.post('/api/todos/', data: todo.toJson());
-
-    return response;
+        await dio.put('/api/todos/${todo.id}/', data: todo.toJson());
+    _list.remove(todo);
+    _list.add(Todo.fromJson(response.data));
   }
 
-  Future delete(int id) async {
-    final Response response = await dio.delete('/api/todos/$id/');
-    return response;
+  Future<void> delete(int id) async {
+    // deleteは２０４なんでresponseを返さない
+    await dio.delete('/api/todos/$id/');
+    _list.removeWhere((element) => element.id == id);
   }
 
   // todo を読み込み
   Future<void> load() async {
     await _prepareDio(dio);
     final res = await dio.get('/api/todos/');
-    _list = res.data.map((todo) => Todo.fromJson(todo)).toList();
+    List<dynamic> data = res.data;
+    _list = data.map((todo) => Todo.fromJson(todo)).toList();
   }
 
   Future<void> _prepareDio(Dio dio) async {
     dio.options.baseUrl = _uriHost.toString();
-    dio.options.connectTimeout = 5000;
-    dio.options.receiveTimeout = 3000;
   }
 }

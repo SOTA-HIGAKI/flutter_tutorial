@@ -36,25 +36,19 @@ class _TodoListPageState extends State<TodoListPage> {
         },
       ),
     );
-    // // Todoの追加/更新を行う場合があるため、画面を更新する
     setState(() {});
+    // // Todoの追加/更新を行う場合があるため、画面を更新する
   }
 
   @override
   void initState() {
     super.initState();
 
-    // () async {
-    //   await _repo.load();
-    //   setState(() {});
-    // };
-    // FutureでラップしないとinitState()が終わってしまう why
-    Future<void> (
-      () async {
-        await _repo.load();
-        setState(() {});
-      },
-    );
+    // FutureでラップしないとinitState()が終わってしまう why→実行していなかったから
+    () async {
+      await _repo.load();
+      setState(() {});
+    }();
   }
 
   @override
@@ -89,6 +83,7 @@ class _TodoListPageState extends State<TodoListPage> {
                     onPressed: (context) async {
                       await _repo.delete(todo.id);
                       setState(() {});
+                      print("finish slidable");
                     },
                     backgroundColor: Colors.red,
                     icon: Icons.edit,
@@ -226,13 +221,14 @@ class _TodoAddPageState extends State<TodoAddPage> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
                   if (_isCreateTodo) {
                     // Todoを追加する
-                    _repo.add(_done, _title, _explanation);
+                    await _repo.add(_done, _title, _explanation);
                   } else {
                     // Todoを更新する
-                    _repo.update(widget.todo!, _done, _title, _explanation);
+                    await _repo.update(
+                        widget.todo!, _done, _title, _explanation);
                   }
                   // Todoリスト画面に戻る
                   Navigator.of(context).pop();

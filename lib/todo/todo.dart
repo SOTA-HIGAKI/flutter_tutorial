@@ -20,12 +20,14 @@ class Todo {
     };
   }
 
-  Todo.fromJson(Map json) {
-    id = json['id'];
-    title = json['title'];
-    explanation = json['explanation'];
-    done = json['done'];
-    createDate = json['createDate'];
-    updatedDate = json['updatedDate'];
+  factory Todo.fromJson(Map json) {
+    return Todo(
+      json['id'],
+      json['title'],
+      json['explanation'],
+      json['done'],
+      json['createDate'],
+      json['updatedDate'],
+    );
   }
 }
