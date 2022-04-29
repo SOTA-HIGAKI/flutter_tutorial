@@ -92,6 +92,80 @@ class _PasswordFieldState extends State<PasswordField> {
   }
 }
 
+class NormalFormField extends StatefulWidget {
+  final TextEditingController? controller;
+  final String? hintText;
+  final AutovalidateMode autovalidateMode;
+  final String? Function(String?)? validator;
+  final void Function(String)? onChanged;
+  final Color color;
+  final String labelText;
+  const NormalFormField(
+      {Key? key,
+      this.controller,
+      this.hintText,
+      this.autovalidateMode = AutovalidateMode.disabled,
+      this.validator,
+      this.onChanged,
+      required this.color,
+      required this.labelText})
+      : super(key: key);
+
+  @override
+  State<NormalFormField> createState() => _NormalFormFieldState();
+}
+
+class _NormalFormFieldState extends State<NormalFormField> {
+  late TextEditingController _controller;
+  TextEditingController get _textController => _controller;
+  @override
+  void initState() {
+    super.initState();
+    if (widget.controller == null) {
+      _controller = TextEditingController();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      controller: _textController,
+      maxLength: 20,
+      cursorColor: widget.color,
+      keyboardType: widget.labelText == "mail"  // 随時追加
+          ? TextInputType.emailAddress
+          : TextInputType.text,
+      autovalidateMode: widget.autovalidateMode,
+      style: TextStyle(color: widget.color),
+      decoration: InputDecoration(
+        focusColor: widget.color,
+        hintText: widget.hintText,
+        labelText: widget.labelText,
+        counterText: "",
+        // errorText: '8文字以上入力してください',
+        focusedBorder: OutlineInputBorder(
+          borderSide: BorderSide(
+            color: widget.color,
+            width: 2.0,
+          ),
+        ),
+        border: const OutlineInputBorder(),
+        labelStyle: TextStyle(
+          color: widget.color,
+        ),
+      ),
+      validator: widget.validator,
+      onChanged: widget.onChanged,
+    );
+  }
+}
+
 class PasswordVisibilityController extends ValueNotifier<bool> {
   PasswordVisibilityController({required bool visible}) : super(visible);
 

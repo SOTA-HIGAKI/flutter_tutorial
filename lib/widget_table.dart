@@ -25,7 +25,6 @@ class WidgetPage extends StatefulWidget {
 }
 
 class _WidgetPageState extends State<WidgetPage> {
-  List<String> lists = ['ほげほげ', 'ほげほげ', 'ほげほげ'];
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +37,13 @@ class _WidgetPageState extends State<WidgetPage> {
           child: Center(
               child: Card(
                   child: Padding(
-                      padding: const EdgeInsets.all(30), child: PasswordField(color: MyColors.black2,))))),
+                      padding: const EdgeInsets.all(30),
+                      child: ListView(children: [
+                        PasswordField(
+                          color: MyColors.black2,
+                        ),
+                        NormalFormField(color: MyColors.black2, labelText: "mail",)
+                      ]))))),
     );
   }
 }
