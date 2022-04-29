@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_first_app/colors.dart';
+import 'package:flutter_first_app/widgets/button.dart';
 import 'package:flutter_first_app/widgets/text_box.dart';
 import 'package:provider/provider.dart';
 
@@ -25,7 +26,6 @@ class WidgetPage extends StatefulWidget {
 }
 
 class _WidgetPageState extends State<WidgetPage> {
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -42,7 +42,14 @@ class _WidgetPageState extends State<WidgetPage> {
                         PasswordField(
                           color: MyColors.black2,
                         ),
-                        NormalFormField(color: MyColors.black2, labelText: "mail",)
+                        NormalFormField(
+                          color: MyColors.black2,
+                          labelText: "mail",
+                        ),
+                        SquareButtonBaseWidget(
+                            text: "a", color: MyColors.black2),
+                        CircleButtonBaseWidget(
+                            icon: const Icon(Icons.add), color: MyColors.black2)
                       ]))))),
     );
   }
